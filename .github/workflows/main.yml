@@ -1,12 +1,9 @@
 name: 自动编译 Simple Live APK
 
 on:
-  # 当你想手动编译时，可以在 Actions 页面点击按钮运行
   workflow_dispatch:
-  # 当你向 main 分支推送代码时（比如合并更新），会自动触发编译
   push:
     branches: [ main ]
-  # 当你创建一个新的 Release 时，也会触发编译
   release:
     types: [published]
 
@@ -15,8 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 同时编译手机版和 TV 版
-        project: [simple_live_app,]
+        project: [simple_live_app]   # 可添加 simple_live_tv_app
     steps:
       - name: Checkout 代码
         uses: actions/checkout@v4
@@ -30,7 +26,6 @@ jobs:
       - name: 设置 Flutter 环境
         uses: subosito/flutter-action@v2
         with:
-          # 项目要求 Flutter 3.38 版本，这里使用最新的稳定版
           channel: 'stable'
           flutter-version: '3.38.3'
 
@@ -39,22 +34,22 @@ jobs:
         run: flutter pub get
 
       - name: 生成 local.properties
+        working-directory: ${{ matrix.project }}
         run: echo "flutter.sdk=${{ env.FLUTTER_HOME }}" > android/local.properties
 
       - name: 生成 debug keystore
         run: |
           mkdir -p ~/.android
           keytool -genkey -v -keystore ~/.android/debug.keystore \
-          -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
-          -dname "CN=Android Debug, O=Android, C=US" -storepass android -keypass android
-        
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug, O=Android, C=US" -storepass android -keypass android
+
       - name: 编译 Android APK
         working-directory: ${{ matrix.project }}
         run: flutter build apk --release
 
-      - name: 上传编译产物 (手机版)
-        if: matrix.project == 'simple_live_app'
+      - name: 上传编译产物
         uses: actions/upload-artifact@v4
         with:
-          name: simple-live-mobile
-          path: simple_live_app/build/app/outputs/flutter-apk/app-release.apk
+          name: simple-live-${{ matrix.project == 'simple_live_app' && 'mobile' || 'tv' }}
+          path: ${{ matrix.project }}/build/app/outputs/flutter-apk/app-release.apk
