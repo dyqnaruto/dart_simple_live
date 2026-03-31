@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         # 同时编译手机版和 TV 版
-        project: [simple_live_app, simple_live_tv_app]
+        project: [simple_live_app,]
     steps:
       - name: Checkout 代码
         uses: actions/checkout@v4
@@ -49,9 +49,3 @@ jobs:
           name: simple-live-mobile
           path: simple_live_app/build/app/outputs/flutter-apk/app-release.apk
 
-      - name: 上传编译产物 (TV版)
-        if: matrix.project == 'simple_live_tv_app'
-        uses: actions/upload-artifact@v4
-        with:
-          name: simple-live-tv
-          path: simple_live_tv_app/build/app/outputs/flutter-apk/app-release.apk
