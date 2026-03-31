@@ -43,9 +43,11 @@ jobs:
 
       - name: 生成 debug keystore
         run: |
-        mkdir -p ~/.android
-        keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug, O=Android, C=US" -storepass android -keypass android
-
+          mkdir -p ~/.android
+          keytool -genkey -v -keystore ~/.android/debug.keystore \
+          -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+          -dname "CN=Android Debug, O=Android, C=US" -storepass android -keypass android
+        
       - name: 编译 Android APK
         working-directory: ${{ matrix.project }}
         run: flutter build apk --release
