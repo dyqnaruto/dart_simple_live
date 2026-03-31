@@ -39,16 +39,41 @@ android {
         versionName = flutter.versionName
     }
 
-    signingConfigs {
-        create("release") {
+//    signingConfigs {
+//        create("release") {
+//            keyAlias = keystoreProperties["keyAlias"] as String
+//            keyPassword = keystoreProperties["keyPassword"] as String
+//            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+//            storePassword = keystoreProperties["storePassword"] as String
+//            isV1SigningEnabled = true
+//            isV2SigningEnabled = true
+//        }
+//    }
+//
+signingConfigs {
+    create("release") {
+        // 如果 keystore.properties 存在且所有必要属性都非空，则使用正式签名
+        if (keystorePropertiesFile.exists() &&
+            keystoreProperties["keyAlias"] != null &&
+            keystoreProperties["keyPassword"] != null &&
+            keystoreProperties["storeFile"] != null &&
+            keystoreProperties["storePassword"] != null) {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storeFile = file(keystoreProperties["storeFile"] as String)
             storePassword = keystoreProperties["storePassword"] as String
-            isV1SigningEnabled = true
-            isV2SigningEnabled = true
+        } else {
+            // 否则使用 Android SDK 默认的 debug 签名（确保构建能通过）
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
         }
+        isV1SigningEnabled = true
+        isV2SigningEnabled = true
     }
+}
+
 
     buildTypes {
         release {
